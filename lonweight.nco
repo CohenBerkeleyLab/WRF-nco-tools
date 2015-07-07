@@ -1,0 +1,11 @@
+// Weights for the profiles will be calculated
+// by using longitude to calculate the UTC offset
+// We want the maximum of the weight to occur
+// for profiles near OMI overpass time, which
+// is ~14 local standard time for the US
+// Since the UTC offset ideally changes by
+// 1 hr for every 15 degrees longitude,
+// we account for that.
+lonweight=abs(14-(XLONG/15)-utchr);
+lonweight=lonweight>>0;
+lonweight=lonweight<<1;

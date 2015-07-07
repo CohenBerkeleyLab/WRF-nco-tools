@@ -1,0 +1,82 @@
+// NCO tools can be obtained as binaries from http://nco.sourceforge.net/#Binaries
+// Most of these tools are meant to be used within shell scripts to operate on netCDF files
+// This script must be run using the -S flag with the ncap2 command, and is probably best
+// wrapped in a larger shell script. Example use:
+//  ncap2 -O -v -S calculated_quantities.nco in.nc out.nc
+// This will use the in.nc file as input (where the variables will be read from).
+// The -v flag indicates that only user defined variables in this script will be
+// written to out.nc.  -O means to overwrite out.nc if it exists.
+//
+// Variable names referenced below must be present in the input file for this
+// script to work. 
+//
+// This script was written for WRF-Chem 3.5 output, to calculate useful quantities
+// for the use of WRF-Chem as a source for NO2 a priori profiles in the BEHR 
+// algorithm.  It is based on 4.nco_proc_col.nco from Luke Valin.
+//
+// Mathematical descriptions will be given in Latex format.
+//
+// Josh Laughner <joshlaugh5@gmail.com> 1 Jul 2015
+
+
+// Calculate the altitude of each grid box from the geopotential
+// Geopotential (and pressure) in WRF are written as the "base state"
+// and "perturbation" (PHB and PH respectively, or PB and P for 
+// pressure) so PHB+PH gives the total geopotential.
+// 
+// From Wallace and Hobbs:
+// \Phi = \int_0^z g dz' => \Phi = gz => \Phi / g = z
+//  where \Phi is geopotential, g is the gravitational force and z is altitude.
+
+z=(PH+PHB)/9.81;
+z@description="altitude derived from geopotential";
+z@units="m";
+
+// Calculate the box height in meters. Note that 1) the indices are 0 based and 
+// 2) if you have output with a different number of vertical levels, you'll need
+// to change the slice in the second instance of z to be # of vertical levels - 2.
+
+zlev[$Time,$bottom_top,$south_north,$west_east]=z(:,1:,:,:)-z(:,0:28,:,:);
+zlev@description="box height";
+zlev@units="m";
+
+// Go ahead and ouput the actual pressure (so that we don't need to add P+PB again)
+// WRF outputs pressure as a base state (PB) and perturbation (P) which we can 
+// just take care of now. We'll also convert to hPa because that's more convinient
+// when treating them as pressure levels.
+pres=(P+PB)/100;
+pres@description="grid box pressure";
+pres@units="hPa";
+
+// Calculate the actual temperature - the WRF variable T is the perturbation to 
+// potential temperature. From Wallace & Hobbs, eqn. 3.54
+//      \theta = (\theta' - \theta_0) = T(p_0 / p)^{R / c_p}
+// where \theta is the potential temperature, \theta' is the pot. temp. perturbation,
+// \theta_0 is the "base" potential temperature, T is the actual temperature (NOTE! WRF
+// uses T to mean potential temperature perturbation), p_0 is the surface pressure, 
+// p is the actual pressure, R is the gas constant, and c_p is the specific heat at 
+// constant pressure. Thus:
+//      T = (\theta' - \theta_0) * (p / p_0)^{R / c_p}
+// which if we take \theta_0 = 300 K, p_0 = 100,000 Pa, and R/c_p = 0.2865 is
+//      T = (\theta' - 300) * (p / 1e5)^0.2865
+
+TT=(300+T)*((P+PB)/1e5)^0.2854;
+TT@description="temperature";
+TT@units="K";
+
+// Calculate the number density of air using the ideal gas law:
+//  N / V = (n * A_v) / V = (P * A_v) / (R * T)
+// Note however that this will be in molec./m^3, and generally number density
+// is given in molec./cm^3, so we need a factor of 1*10^-6 to handle this.
+
+ndens=((P+PB) * 1e-6 * 6.02e23)/(8.314 * TT);
+ndens@description="number density of air";
+ndens@units="molec./cm^3";
+
+// Use the value of the number density of air to convert mixing ratios to number
+// density. Note that we need to convert from parts-per-m/b/tr-illion to parts-per-part.
+// Also note that if you are comparing this to 4.nco_proc_col.nco that this is outputting
+// a number density, while 4.nco_proc_col.nco is calculating partial columns, hence why
+// these are not multiplied by zlev * 100 (i.e. the box height in cm).
+
+no2_ndens=no2 * ndens;
