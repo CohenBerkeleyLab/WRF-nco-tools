@@ -15,7 +15,9 @@ scriptdir='/global/home/users/laughner/WRF/OUTPUT_PROCESSING'
 # Keep a list of the files to concatenate
 catfiles=''
 
-for file in $@
+wrffiles=$(cat $1)
+
+for file in $wrffiles
 do
     # Get the date from the file names for the save name
     day=${file:11:10}
@@ -25,7 +27,7 @@ do
     # to select or weight profiles
     hr=${file:22:2}
     echo "        Saving UTC hour..."
-    ncap2 -O -v -s "utchr=$hr" $file $file.tmpnc
+    ncap2 -O -v -s "utchr[Time]=$hr" $file $file.tmpnc
 
     # Copy the variables needed to keep track of position & time,
     # plus the species mixing ratios that we're interested in.
@@ -49,7 +51,8 @@ do
     catfiles=$(echo $catfiles $file.tmpnc)
 done
 
-savename="WRF_BEHR_$day"
+# WRFPROCMODE is set in the slurmrun script - it's basically the level of averaging
+savename="WRF_BEHR_${WRFPROCMODE}_${day}"
 # Concatenate (along time as it's the record dimension)
 ncrcat $catfiles $savename.tmpnc
 

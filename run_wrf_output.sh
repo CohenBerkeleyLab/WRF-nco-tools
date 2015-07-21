@@ -20,9 +20,6 @@
 # This keeps the structure of this program the same as on the HPC cluster,
 # where it needs to be done this way to launch multiple instances of 
 # read_wrf_output.sh in parallel.
-#
-# The easiest way to run this is to make a link in the directory with the WRF
-# output, then submit it using sbatch
 
 # Josh Laughner <joshlaugh5@gmail.com> 2 Jul 2015
 
@@ -66,7 +63,7 @@ fi
 # If we're doing monthly averages, then we just need to get the year and month
 dates=''
 olddate=''
-for file in ./wrf*
+for file in ./wrfout*
 do
     if [[ $mode == 'monthly' ]]
     then

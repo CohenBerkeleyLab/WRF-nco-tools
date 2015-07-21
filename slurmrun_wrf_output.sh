@@ -86,13 +86,14 @@ then
     exit 1
 else
     echo "mode set to $mode"
+    export WRFPROCMODE=$mode # export so we can use it in the save filename
 fi
 
 # Find all unique dates - we'll need this to iterate over each day
 # If we're doing monthly averages, then we just need to get the year and month
 dates=''
 olddate=''
-for file in ./wrf*
+for file in ./wrfout*
 do
     if [[ $mode == 'monthly' ]]
     then
@@ -129,7 +130,12 @@ do
     # over the wildcard patterns themselves. Since those contain *, we
     # can avoid doing anything in that case by requiring that the file
     # name does not include a *
-    filepattern=$(echo wrfout_d01_${day}_{19,20,21,22}*)
+    if [[ $mode != 'monthly' ]]
+    then 
+        filepattern=$(echo wrfout_d01_${day}_{19,20,21,22}*)
+    else
+        filepattern=$(echo wrfout_d01_${day}-??_{19,20,21,22}*)
+    fi
     if [[ $filepattern != *'*'* ]]
     then
         echo "    $filepattern"
@@ -140,8 +146,17 @@ do
         # different tasks on the same node), it looks like the multiple
         # program configuration is our best option. This means that we will
         # have to create a config file for every 4 files we want to run.
+        #
+        # The catch here is that the multi-prog config file gets... cranky if
+        # the lines are too long. So we can't pass the files to operate on to
+        # read_wrf_output as individual command line arguments because that
+        # will break srun. Instead, we'll list them in the "wrfproclist" files
+        # and read_wrf_output should read them from there.
         
-        echo "$jj $scriptdir/read_wrf_output.sh $filepattern" >> wrf_srun_mpc.conf
+        inname="wrfproclist.$jj"
+        echo $filepattern > $inname
+        
+        echo "$jj $scriptdir/read_wrf_output.sh $inname" >> wrf_srun_mpc.conf
         jobwaiting=1        
 
         if [[ $jj -lt $nthreadsM1 ]]
@@ -152,7 +167,7 @@ do
             # wait statement, srun should't continue until all four job steps 
             # finish
             srun --multi-prog wrf_srun_mpc.conf
- 	    cat wrf_srun_mpc.conf
+ 	        cat wrf_srun_mpc.conf
             echo
             echo "Waited for $nthreads file processing scripts to finish. Launching a new batch of $nthreads scripts ..."
             echo
@@ -163,6 +178,7 @@ do
             # exiting the loop
             jj=0
             rm wrf_srun_mpc.conf
+            rm wrfproclist.?
             jobwaiting=0
         fi
     fi
@@ -180,3 +196,4 @@ then
 fi
 
 rm *.tmpnc *.tmp
+exit 0

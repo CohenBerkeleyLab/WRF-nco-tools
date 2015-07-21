@@ -36,7 +36,7 @@ z@units="m";
 // 2) if you have output with a different number of vertical levels, you'll need
 // to change the slice in the second instance of z to be # of vertical levels - 2.
 
-zlev[$Time,$bottom_top,$south_north,$west_east]=z(:,1:,:,:)-z(:,0:28,:,:);
+zlev[$Time,$bottom_top,$south_north,$west_east]=z(:,1:29,:,:)-z(:,0:28,:,:);
 zlev@description="box height";
 zlev@units="m";
 
@@ -79,4 +79,6 @@ ndens@units="molec./cm^3";
 // a number density, while 4.nco_proc_col.nco is calculating partial columns, hence why
 // these are not multiplied by zlev * 100 (i.e. the box height in cm).
 
-no2_ndens=no2 * ndens;
+no2_ndens=no2 * ndens *1e-6; // the factor 1e-6 converts no2 from ppm to parts-per-part
+no2_ndens@description="NO2 number density";
+no2_ndens@units="molec./cm^3";
