@@ -52,20 +52,51 @@
 
 # Josh Laughner <joshlaugh5@gmail.com> 2 Jul 2015
 
-# set mode here - I don't know if sbatch allows it's run scripts to take
-# command line arguments. Should be 'hourly', 'daily', or 'monthly'
-if [[ $# -lt 1 ]]
+
+# Parse command arguments looking for two things: the averaging mode and which set of 
+# output quantities to copy/calculate. Credit to 
+# http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+# for the code outline.
+while [[ $# > 0 ]]
+do
+keyin="$1"
+# Ensure input is lower case
+key=$(echo $keyin | awk '{print tolower($0)}')
+    case $key in
+        'monthly'|'daily'|'hourly')
+        mode=$key
+        shift # shift the input arguments left by one
+        ;;
+        'behr'|'emis')
+        varsout=$key
+        shift
+        ;;
+        *) # catch unrecognized arguments
+        echo "The argument \"$key\" is not recognized"
+        exit 1
+        ;;
+    esac
+done
+
+# Set the defaults - averaging mode will default to "hourly"
+# and the outputs to "behr"
+if [[ $mode == '' ]]
 then
     mode='hourly'
-else
-    mode=$1
+fi
+
+if [[ $varsout == '' ]]
+then
+    varsout='behr'
 fi
 
 # export the mode so that the child scripts can access it
 export WRFPROCMODE=$mode
 
-# Where the actual scripts are kept.
-scriptdir='/global/home/users/laughner/WRF/OUTPUT_PROCESSING'
+# Where the actual scripts are kept. Export it so all other scripts
+# know.
+scriptdir='/global/home/users/laughner/MATLAB/BEHR/WRF_Utils'
+export JLL_WRFSCRIPT_DIR=$scriptdir
 
 # nprocs should match the number of cpus in the node (32 for brewer)
 nprocs=20
@@ -156,7 +187,16 @@ do
         inname="wrfproclist.$jj"
         echo $filepattern > $inname
         
-        echo "$jj $scriptdir/read_wrf_output.sh $inname" >> wrf_srun_mpc.conf
+        if [[ $varsout == 'behr' ]]
+        then
+            echo "$jj $scriptdir/read_wrf_output.sh $inname" >> wrf_srun_mpc.conf
+        elif [[ $varsout == 'emis' ]]
+        then
+            echo "$jj $scriptdir/read_wrf_emis.sh $inname" >> wrf_srun_mpc.conf
+        else
+            echo "Error at $LINENO in slurmrun_wrf_output.sh: \"$varsout\" is not a recognized operation"
+            exit 1
+        fi
         jobwaiting=1        
 
         if [[ $jj -lt $nthreadsM1 ]]
