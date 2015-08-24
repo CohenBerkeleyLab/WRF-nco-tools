@@ -82,3 +82,9 @@ ndens@units="molec./cm^3";
 no2_ndens=no2 * ndens *1e-6; // the factor 1e-6 converts no2 from ppm to parts-per-part
 no2_ndens@description="NO2 number density";
 no2_ndens@units="molec./cm^3";
+
+// Winds are output in grid-relative orientation. This should convert them back to
+// earth relative (see http://forum.wrfforum.com/viewtopic.php?f=8&t=3225)
+// Add this to the description for U and V so we know
+U@description="grid rel. x-wind component, U_earth = U*cosalpha - V*sinalpha";
+V@description="grid rel. y-wind component, V_earth = V*cosalpha + U*sinalpha";
