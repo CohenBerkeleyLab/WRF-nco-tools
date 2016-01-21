@@ -40,7 +40,7 @@ do
     # COSALPHA AND SINALPHA are needed to convert the winds from grid
     # relative to earth relative. See http://forum.wrfforum.com/viewtopic.php?f=8&t=3225
     echo "        Copying variables..."
-    ncks -A -v 'Times,XLAT,XLONG,no2,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
+    ncks -A -v 'Times,XLAT,XLONG,no2,U,V,COSALPHA,SINALPHA,PBLH' $file $file.tmpnc
 
     # Calculate the other quantities we want, like altitude, box height,
     # actual level pressure, number density of air
