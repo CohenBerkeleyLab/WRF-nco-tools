@@ -67,7 +67,7 @@ key=$(echo $keyin | awk '{print tolower($0)}')
         mode=$key
         shift # shift the input arguments left by one
         ;;
-        'behr'|'emis')
+        'behr'|'emis'|'tempo')
         varsout=$key
         shift
         ;;
@@ -161,7 +161,10 @@ do
     # over the wildcard patterns themselves. Since those contain *, we
     # can avoid doing anything in that case by requiring that the file
     # name does not include a *
-    if [[ $mode != 'monthly' ]]
+    if [[ $varsout == 'tempo' ]]
+    then
+        filepattern=$(echo wrfout_d01_${day}*)
+    elif [[ $mode != 'monthly' ]]
     then 
         filepattern=$(echo wrfout_d01_${day}_{19,20,21,22}*)
     else
@@ -193,6 +196,9 @@ do
         elif [[ $varsout == 'emis' ]]
         then
             echo "$jj $scriptdir/read_wrf_emis.sh $inname" >> wrf_srun_mpc.conf
+        elif [[ $varsout == 'tempo' ]]
+        then
+            echo "$jj $scriptdir/read_wrf_tempo.sh $inname" >> wrf_srun_mpc.conf
         else
             echo "Error at $LINENO in slurmrun_wrf_output.sh: \"$varsout\" is not a recognized operation"
             exit 1
@@ -235,5 +241,5 @@ then
     cat wrf_srun_mpc.conf
 fi
 
-rm *.tmpnc *.tmp
+rm *.tmpnc *.tmp *.hrnc
 exit 0
