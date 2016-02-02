@@ -80,12 +80,11 @@ do
     # Concatenate (along time as it's the record dimension)
     echo "Concatenating into $savename.tmpnc"
     ncrcat $catfiles $savename.tmpnc
-
     # Unless we're keeping the hourly profiles, average over time, weighting
     # by the weights we calculated before
     if [[ $mode != 'hourly' ]]
     then
-            ncwa -a Time -w lonweight $savename.tmpnc $savename.hrnc
+            ncwa -a Time $savename.tmpnc $savename.hrnc
     else
             mv $savename.tmpnc $savename.hrnc
     fi
