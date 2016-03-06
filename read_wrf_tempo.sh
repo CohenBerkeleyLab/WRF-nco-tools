@@ -80,14 +80,10 @@ do
     # Concatenate (along time as it's the record dimension)
     echo "Concatenating into $savename.tmpnc"
     ncrcat $catfiles $savename.tmpnc
-    # Unless we're keeping the hourly profiles, average over time, weighting
-    # by the weights we calculated before
-    if [[ $mode != 'hourly' ]]
-    then
-            ncwa -a Time $savename.tmpnc $savename.hrnc
-    else
-            mv $savename.tmpnc $savename.hrnc
-    fi
+    # Average over Time. This should either remove it as a dimension
+    # (if only one) or ensure that if output is on each half hour
+    # that there's only one entry per hour.
+    ncwa -a Time $savename.tmpnc $savename.hrnc
 done
 
 # Finally concatenate one last time to put all the various hours together
