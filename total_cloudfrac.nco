@@ -1,0 +1,52 @@
+// This will estimate the total cloud fraction of each grid cell
+// according to the random overlap formula given by 
+// Hogan and Illingworth, "Deriving cloud overlap statistics from radar",
+// Q. J. R. Meteorol. Soc. (2000), 126, 2903-2909.
+// Eqn. 1-4 and Table 1 contain the relevant information.
+// We will use the e-folding distance for 1 hr resolution and
+// 720 m, as the level separation in the WRF output I'm using
+// is closest to 700 m around where clouds start becoming prevalent.
+// 1 hr time resolution could be argued either way; the output is
+// sometimes 0.5 or 1 hour, but the boundary conditions are at 3 hr.
+// 
+// This will need to loop over each level except the last and compare
+// pairwise each level with the one above it.
+
+print("Beginning total_cloudfrac\n");
+
+// Get the dimensions to loop over
+*sz_time=$Time.size;
+*sz_south_north=$south_north.size;
+*sz_west_east=$west_east.size;
+*sz_bottom_top=$bottom_top.size;
+
+// Store CLDFRA in ram to avoid too many disk reads
+*tmp_cldfra=CLDFRA;
+
+// Initialize the CLDFRA_TOTAL variable to 0. This'll be saved permanently later.
+*CLDFRA_TOTAL[$Time, $south_north, $west_east]=0;
+
+// Begin the loops
+for(*tdx=0;tdx<sz_time;tdx++){
+    for(*idx=0;idx<sz_south_north;idx++){
+        print("Advancing idx...\n");
+        for(*jdx=0;jdx<sz_west_east;jdx++){
+            *ci=tmp_cldfra(tdx,0,idx,jdx);
+            
+            for(*kdx=1;kdx<sz_bottom_top;kdx++){
+                *alpha=2.71^(zlev(tdx,kdx-1,idx,jdx)/1900);
+                *ci1=tmp_cldfra(tdx,kdx,idx,jdx);
+                *mc=0;
+                if(ci < ci1)
+                    mc=ci;
+                else
+                    mc=ci1;
+                
+                *O=alpha*mc+(1-alpha)*ci*ci1;
+                ci=ci+ci1-O;
+            }
+            CLDFRA_TOTAL(tdx,idx,jdx)=ci;
+        }
+    }
+}
+CLDFRA_TOTAL.ram_write();
