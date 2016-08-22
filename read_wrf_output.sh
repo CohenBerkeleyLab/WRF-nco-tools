@@ -37,8 +37,10 @@ do
     # Copy the variables needed to keep track of position & time,
     # plus the species mixing ratios that we're interested in.
     # U and V are temporary for studying the effect of wind on a priori
+    # COSALPHA AND SINALPHA are needed to convert the winds from grid
+    # relative to earth relative. See http://forum.wrfforum.com/viewtopic.php?f=8&t=3225
     echo "        Copying variables..."
-    ncks -A -v 'Times,XLAT,XLONG,no2,U,V' $file $file.tmpnc
+    ncks -A -v 'Times,XLAT,XLONG,no2,U,V,COSALPHA,SINALPHA,PBLH,CLDFRA' $file $file.tmpnc
 
     # Calculate the other quantities we want, like altitude, box height,
     # actual level pressure, number density of air
