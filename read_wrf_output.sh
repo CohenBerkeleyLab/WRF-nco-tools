@@ -40,7 +40,10 @@ do
     # COSALPHA AND SINALPHA are needed to convert the winds from grid
     # relative to earth relative. See http://forum.wrfforum.com/viewtopic.php?f=8&t=3225
     echo "        Copying variables..."
-    ncks -A -v 'Times,XLAT,XLONG,no2,U,V,COSALPHA,SINALPHA,PBLH,CLDFRA' $file $file.tmpnc
+    # Simpler output, all that is really needed for BEHR
+    #ncks -A -v 'Times,XLAT,XLONG,no2,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
+    # Additional variables for nudging test
+    ncks -A -v 'Times,XLAT,XLONG,XLONG_U,XLAT_U,XLONG_V,XLAT_V,no,no2,o3,mpn,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
 
     # Calculate the other quantities we want, like altitude, box height,
     # actual level pressure, number density of air

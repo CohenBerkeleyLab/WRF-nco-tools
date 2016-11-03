@@ -166,9 +166,9 @@ do
         filepattern=$(echo wrfout_d01_${day}*)
     elif [[ $mode != 'monthly' ]]
     then 
-        filepattern=$(echo wrfout_d01_${day}_{19,20,21,22}*)
+        filepattern=$(echo wrfout_d01_${day}_{18,19,20,21,22}*)
     else
-        filepattern=$(echo wrfout_d01_${day}-??_{19,20,21,22}*)
+        filepattern=$(echo wrfout_d01_${day}-??_{18,19,20,21,22}*)
     fi
     if [[ $filepattern != *'*'* ]]
     then
