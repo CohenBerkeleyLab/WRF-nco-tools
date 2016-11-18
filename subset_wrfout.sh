@@ -74,7 +74,7 @@ else
             if [[ $subvars =~ $regex ]]; then
                 echo "Duplicate variable: $key, will only output once"
             else
-                subvars="$subvars $key"
+                subvars="$subvars $keyin"
             fi
             ;;  
         esac
