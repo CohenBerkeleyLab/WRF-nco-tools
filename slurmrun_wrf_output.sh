@@ -8,7 +8,7 @@
 #SBATCH --account=co_aiolos
 #
 # QoS (running a condo job)
-#SBATCH --qos=aiolos_normal
+#SBATCH --qos=aiolos_savio_normal
 #
 # Luke indicated that processes like these are extremely IO intensive
 # so we should limit the number of tasks being performed or the process

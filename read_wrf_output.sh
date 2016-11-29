@@ -43,7 +43,8 @@ do
     # Simpler output, all that is really needed for BEHR
     #ncks -A -v 'Times,XLAT,XLONG,no2,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
     # Additional variables for nudging test
-    ncks -A -v 'Times,XLAT,XLONG,XLONG_U,XLAT_U,XLONG_V,XLAT_V,no,no2,o3,mpn,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
+    #ncks -A -v 'Times,XLAT,XLONG,XLONG_U,XLAT_U,XLONG_V,XLAT_V,no,no2,o3,mpn,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
+    ncks -A -v 'Times,XLAT,XLONG,XLONG_U,XLAT_U,XLONG_V,XLAT_V,U,V,COSALPHA,SINALPHA' $file $file.tmpnc
 
     # Calculate the other quantities we want, like altitude, box height,
     # actual level pressure, number density of air
