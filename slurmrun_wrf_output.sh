@@ -67,7 +67,7 @@ key=$(echo $keyin | awk '{print tolower($0)}')
         mode=$key
         shift # shift the input arguments left by one
         ;;
-        'behr'|'emis'|'tempo')
+        'behr'|'emis'|'tempo'|'avg')
         varsout=$key
         shift
         ;;
@@ -126,11 +126,14 @@ dates=''
 olddate=''
 for file in ./wrfout*
 do
+    # Handle wrfout and wrfout_subset files
+    dtmp=$(awk -v a="$file" -v b="d01" 'BEGIN{print index(a,b)}')
+    dstart=$((dtmp+3))
     if [[ $mode == 'monthly' ]]
     then
-        newdate=${file:13:7}
+        newdate=${file:$dstart:7}
     else
-        newdate=${file:13:10}
+        newdate=${file:$dstart:10}
     fi
 
     if [[ $olddate != $newdate ]]
@@ -199,6 +202,9 @@ do
         elif [[ $varsout == 'tempo' ]]
         then
             echo "$jj $scriptdir/read_wrf_tempo.sh $inname" >> wrf_srun_mpc.conf
+        elif [[ $varsout == 'avg' ]]
+        then
+            echo "$jj $scriptdir/avg_wrf_output.sh $inname" >> wrf_srun_mpc.conf
         else
             echo "Error at $LINENO in slurmrun_wrf_output.sh: \"$varsout\" is not a recognized operation"
             exit 1
