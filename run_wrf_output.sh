@@ -37,7 +37,7 @@ key=$(echo $keyin | awk '{print tolower($0)}')
         mode=$key
         shift # shift the input arguments left by one
         ;;
-        'behr'|'emis')
+        'behr'|'emis'|'avg')
         varsout=$key
         shift
         ;;
@@ -64,7 +64,7 @@ then
 export WRFPROCMODE=$mode
 
 # Where the actual scripts are kept.
-scriptdir='/global/home/users/laughner/WRF/OUTPUT_PROCESSING'
+scriptdir='/Users/Josh/Documents/MATLAB/BEHR/WRF_Utils/'
 export JLL_WRFSCRIPT_DIR=$scriptdir
 
 # nprocs should match the number of cpus in the node (32 for brewer)
@@ -94,11 +94,14 @@ dates=''
 olddate=''
 for file in ./wrfout*
 do
+    # Handle wrfout and wrfout_subset files
+    dtmp=$(awk -v a="$file" -v b="d01" 'BEGIN{print index(a,b)}')
+    dstart=$((dtmp+3))
     if [[ $mode == 'monthly' ]]
     then
-        newdate=${file:13:7}
+        newdate=${file:$dstart:7}
     else
-        newdate=${file:13:10}
+        newdate=${file:$dstart:10}
     fi
 
     if [[ $olddate != $newdate ]]
@@ -121,17 +124,22 @@ do
     # over the wildcard patterns themselves. Since those contain *, we
     # can avoid doing anything in that case by requiring that the file
     # name does not include a *
-    filepattern=$(echo wrfout_d01_${day}_{19,20,21,22}*)
+    filepattern=$(echo wrfout*_d01_${day}-??_{18,19,20,21,22}*)
     if [[ $filepattern != *'*'* ]]
     then
         echo "    $filepattern"
+        echo "$filepattern" > read_wrf.conf
         # Choose which command to execute based on the command arguments
         if [[ $varsout == 'behr' ]]
         then
-            $scriptdir/read_wrf_output.sh $filepattern
+            echo "Calling read_wrf_output"
+            $scriptdir/read_wrf_output.sh read_wrf.conf
         elif [[ $varsout == 'emis' ]]
         then
-            $scriptdir/read_wrf_emis.sh $filepattern
+            $scriptdir/read_wrf_emis.sh read_wrf.conf
+        elif [[ $varsout == 'avg' ]]
+        then
+            $scriptdir/avg_wrf_output.sh read_wrf.conf
         else
             echo "Error at $LINENO in slurmrun_wrf_output.sh: \"$varsout\" is not a recognized operation"
             exit 1
