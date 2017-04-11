@@ -6,6 +6,6 @@
 // Since the UTC offset ideally changes by
 // 1 hr for every 15 degrees longitude,
 // we account for that.
-lonweight=1-abs(14-(XLONG/15)-utchr);
+lonweight=1-abs(13.5-(XLONG/15)-utchr);
 lonweight=lonweight>>0;
 lonweight=lonweight<<1;
