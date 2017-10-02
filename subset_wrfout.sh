@@ -18,7 +18,7 @@ __me=$(basename $0)
 stdvars="Times XLONG XLAT no2 U V COSALPHA SINALPHA calc"
 
 # Variables necessary for BEHR files
-behrvars="Times XLONG XLAT P PB no2 U V COSALPHA SINALPHA"
+behrvars="Times XLONG XLAT no2 U V COSALPHA SINALPHA calcmet"
 
 # Help text
 usage="$(basename $0) -- allows specific variables to be extracted from wrfout files into wrfout_subset files
