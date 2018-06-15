@@ -20,6 +20,8 @@ stdvars="Times XLONG XLAT no2 U V COSALPHA SINALPHA calc"
 # Variables necessary for BEHR files
 behrvars="Times XLONG XLAT no2 U V COSALPHA SINALPHA calcmet"
 
+chemvars="$behrvars no o3 co ho ho2 ch4 calcchem"
+
 # Help text
 usage="$(basename $0) -- allows specific variables to be extracted from wrfout files into wrfout_subset files
 
@@ -32,10 +34,13 @@ There are two exceptions:
     std - will include the default variables listed above. This way, you can add to that list of variables.
     behr - will include variables needed if the output is to be used as a priori in the BEHR retrieval.
         Variables included are: $behrvars
+    chem - will include BEHR variables plus some extra values to provide a minimum amount of chemical information.
+        Variables included are: $chemvars
     calc - will include calculated quantities including temperature (TT), number density of air (ndens),
         NO2 number density (no2_ndens), pressure (pres), altitude (z), and box height (zlev). Note that 
         these are included in std.
     calcmet - like calc, but does not compute NO2 number density and so can be used on wrfinput files.
+    calcchem - computes sum of alkyl, peroxy, and acyl peroxy nitrates.
 
 If using calculated quantities, it is important that $__me reside in the same directory as 
 calculated_quantities.nco (which should be in the same Git repo). Therefore, it is usually best to put a
@@ -97,6 +102,16 @@ else
                 fi
             done
             ;;
+            'chem')
+            for v in $chemvars; do
+                regex='[[:space:]]+'"$v"'[[:space:]]|^'"$v"'[[:space:]]|[[:space:]]'"$v"'$|^'"$v"'$'
+                if [[ $subvars =~ $regex ]]; then
+                    echo "Duplicate variable: $v, will only output once"
+                else
+                    subvars="$subvars $v"
+                fi
+            done
+            ;;
             --pattern*)
                 pat="${key#*=}"
             ;;
@@ -142,6 +157,17 @@ if [[ $subvars =~ $regex ]]; then
     fi
 fi
 
+regex='[[:space:]]+calcchem[[:space:]]|^calcchem[[:space:]]|[[:space:]]calcchem$|^calcchem$'
+if [[ $subvars =~ $regex ]]; then
+    if [[ ! -f "$scriptdir/chem_subset_quantities.nco" ]]; then
+        echo "Cannot find the script chem_subset_quantities.nco" >&2
+        echo "in the directory $scriptdir" >&2
+        echo "$0 should be a link to the original in the directory" >&2
+        echo "containing chem_subset_quantities.nco as well" >&2
+        exit 1
+    fi
+fi
+
 # Now loop over all files matching the pattern $pat in the current directory. Create a new subset file
 # that contains only the specified variables.
 files=$pat
@@ -169,6 +195,8 @@ for f in $files; do
             ncap2 -A -v -S $scriptdir/calculated_quantities.nco $f $savename
         elif [[ $var == "calcmet" ]]; then
             ncap2 -A -v -S $scriptdir/calculated_met_quantities.nco $f $savename
+        elif [[ $var == "calcchem" ]]; then
+            ncap2 -A -v -S $scriptdir/chem_subset_quantities.nco $f $savename
         else
             ncks -A -v "$var" $f $savename
         fi

@@ -1,0 +1,18 @@
+// This script will compute summed quantities:
+//  sumANs = sum of alkyl nitrates
+//  sumPNs = sum of peroxy nitrates
+//  sumAPNs = sum of acyl peroxy nitrates
+// This allows WRF output files to be significantly cut down in size
+// but still retain some nitrate relevant quantities
+
+sumANs=aonit+donit+ethln+icn+inheb+inhed+ihnb+ihnd+imonit+inpb+inpd+macrn+mvkn+onit+propnn+tonih+tonin+tonit+utonin+utonit;
+sumANs@description="Sum of alkyl nitrates (aonit+donit+ethln+icn+inheb+inhed+ihnb+ihnd+imonit+inpb+inpd+macrn+mvkn+onit+propnn+tonih+tonin+tonit+utonin+utonit)";
+sumANs@units="ppmv";
+
+sumPNs=mpn+hno4;
+sumPNs@description="Sum of peroxy nitrates (excluding acyl PNs: mpn+hno4)";
+sumPNs@units="ppmv";
+
+sumAPNs=pan+mpan+ppn;
+sumAPNs@description="Sum of acyl peroxy nitrates (pan+mpan+ppn)";
+sumAPMs@units="ppmv";
